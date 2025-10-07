@@ -1,10 +1,11 @@
 // protocols/rdp.rs - Obsługa połączeń RDP (Remote Desktop Protocol)
-use std::process::Command;
 
 // Łączy się z hostem przez RDP używając mstsc.exe (Windows)
 pub fn connect(hostname: &str, port: u16, username: Option<&str>) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
+        use std::process::Command;
+        
         let mut args = vec![format!("/v:{}:{}", hostname, port)];
         
         // Dodaj username jeśli podano
@@ -24,6 +25,7 @@ pub fn connect(hostname: &str, port: u16, username: Option<&str>) -> Result<(), 
     #[cfg(not(target_os = "windows"))]
     {
         // Na macOS/Linux - tylko zwróć komunikat (mock dla developmentu)
+        let _ = username; // Uniknięcie ostrzeżenia o nieużywanej zmiennej
         Err(format!(
             "RDP nie jest dostępny na tym systemie. Docelowo: mstsc.exe /v:{}:{}",
             hostname, port

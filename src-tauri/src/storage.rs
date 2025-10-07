@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 // Struktura reprezentująca pojedynczy host
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -18,7 +18,7 @@ pub struct Host {
 }
 
 // Struktura przechowująca wszystkie hosty
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct HostsData {
     pub hosts: Vec<Host>,
 }
