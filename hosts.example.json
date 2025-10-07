@@ -1,0 +1,35 @@
+{
+  "hosts": [
+    {
+      "id": "1",
+      "name": "Serwer Produkcyjny",
+      "hostname": "192.168.1.100",
+      "port": 3389,
+      "protocol": "rdp",
+      "username": "Administrator",
+      "category": "Produkcja",
+      "notes": "Główny serwer aplikacji"
+    },
+    {
+      "id": "2",
+      "name": "Router Klienta X",
+      "hostname": "10.0.0.1",
+      "port": 22,
+      "protocol": "ssh",
+      "username": "admin",
+      "category": "Klient X",
+      "notes": "Router głównej lokalizacji"
+    },
+    {
+      "id": "3",
+      "name": "Workstation VNC",
+      "hostname": "192.168.1.50",
+      "port": 5900,
+      "protocol": "vnc",
+      "username": null,
+      "category": "Klient Y",
+      "notes": "Stacja robocza z UltraVNC"
+    }
+  ]
+}
+
