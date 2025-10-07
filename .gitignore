@@ -34,3 +34,7 @@ hosts.json
 
 # OS specific
 Thumbs.db
+
+# Archives
+*.tar.gz
+*.zip
