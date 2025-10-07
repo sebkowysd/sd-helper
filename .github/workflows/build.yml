@@ -1,0 +1,93 @@
+name: Build SD Helper
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Pozwala na ręczne uruchomienie
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-pc-windows-msvc
+        
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          src-tauri/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+          
+    - name: Build application
+      run: npm run tauri:build:windows
+      
+    - name: Create portable ZIP
+      run: |
+        # Utwórz katalog dla portable version
+        mkdir sd-helper-portable
+        
+        # Skopiuj pliki wykonywalne
+        copy "src-tauri\target\x86_64-pc-windows-msvc\release\sd-helper.exe" "sd-helper-portable\"
+        
+        # Skopiuj pliki pomocnicze
+        copy "README.md" "sd-helper-portable\"
+        copy "hosts.example.json" "sd-helper-portable\"
+        
+        # Utwórz plik startowy
+        echo @echo off > "sd-helper-portable\start.bat"
+        echo echo Starting SD Helper... >> "sd-helper-portable\start.bat"
+        echo sd-helper.exe >> "sd-helper-portable\start.bat"
+        echo pause >> "sd-helper-portable\start.bat"
+        
+        # Utwórz README dla portable version
+        echo SD Helper - Portable Version > "sd-helper-portable\PORTABLE-README.txt"
+        echo. >> "sd-helper-portable\PORTABLE-README.txt"
+        echo Instrukcja uruchomienia: >> "sd-helper-portable\PORTABLE-README.txt"
+        echo 1. Uruchom start.bat lub sd-helper.exe >> "sd-helper-portable\PORTABLE-README.txt"
+        echo 2. Pierwsze uruchomienie może zająć chwilę >> "sd-helper-portable\PORTABLE-README.txt"
+        echo 3. Aplikacja zapisuje dane w %%APPDATA%%\sd-helper\ >> "sd-helper-portable\PORTABLE-README.txt"
+        echo. >> "sd-helper-portable\PORTABLE-README.txt"
+        echo Wymagania: >> "sd-helper-portable\PORTABLE-README.txt"
+        echo - Windows 10/11 >> "sd-helper-portable\PORTABLE-README.txt"
+        echo - mstsc.exe (RDP) >> "sd-helper-portable\PORTABLE-README.txt"
+        echo - UltraVNC Viewer (VNC) >> "sd-helper-portable\PORTABLE-README.txt"
+        echo - OpenSSH Client (SSH) >> "sd-helper-portable\PORTABLE-README.txt"
+        
+        # Spakuj do ZIP
+        powershell Compress-Archive -Path "sd-helper-portable\*" -DestinationPath "sd-helper-portable.zip" -Force
+        
+    - name: Upload portable ZIP
+      uses: actions/upload-artifact@v4
+      with:
+        name: sd-helper-portable
+        path: sd-helper-portable.zip
+        retention-days: 30
+        
+    - name: Upload MSI installer
+      uses: actions/upload-artifact@v4
+      with:
+        name: sd-helper-installer
+        path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+        retention-days: 30
